@@ -12,6 +12,7 @@ from pytorch_lightning.loggers import WandbLogger
 import wandb
 import os
 import gc
+from datetime import datetime
 
 class PeriodicLogger(Callback):
     def __init__(self, log_interval):
@@ -21,8 +22,7 @@ class PeriodicLogger(Callback):
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
         if pl_module.global_step % self.log_interval == 0 and pl_module.global_step > 0:
             metrics = trainer.callback_metrics
-            print("-" * 50)
-            print(f"Global Step: {metrics['global_step']}")
+            print(f"--- GLOBAL STEP: {int(metrics['global_step'])} TIME: {datetime.now().strftime('%I:%M:%S')} ---")
             for key, value in metrics.items():
                 if ("step" in key) and (key != "global_step"):
                     print(f"  {key}: {value.item():.4f}")
