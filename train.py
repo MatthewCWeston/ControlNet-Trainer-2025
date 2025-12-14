@@ -19,18 +19,12 @@ class PeriodicLogger(Callback):
         self.log_interval = log_interval
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
-        # Check if we are at a logging step AND the step is > 0
         if pl_module.global_step % self.log_interval == 0 and pl_module.global_step > 0:
-
-            # The metrics are stored in the trainer's logger
             metrics = trainer.callback_metrics
             print("-" * 50)
             print(f"Global Step: {pl_module.global_step}")
-
-            # Print only relevant step metrics
             for key, value in metrics.items():
                 if "step" in key:
-                    # 'item()' extracts the Python number from the PyTorch tensor/scalar
                     print(f"  {key}: {value.item():.4f}")
             print("-" * 50)
 
