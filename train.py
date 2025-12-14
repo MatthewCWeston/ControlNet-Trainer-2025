@@ -22,11 +22,10 @@ class PeriodicLogger(Callback):
         if pl_module.global_step % self.log_interval == 0 and pl_module.global_step > 0:
             metrics = trainer.callback_metrics
             print("-" * 50)
-            print(f"Global Step: {pl_module.global_step}")
+            print(f"Global Step: {metrics['global_step']}")
             for key, value in metrics.items():
-                if "step" in key:
+                if ("step" in key) and (key is not "global_step"):
                     print(f"  {key}: {value.item():.4f}")
-            print("-" * 50)
 
 def train_controlnet(in_notebook):
     gc.collect()
