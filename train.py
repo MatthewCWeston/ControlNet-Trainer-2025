@@ -24,7 +24,7 @@ class PeriodicLogger(Callback):
             print("-" * 50)
             print(f"Global Step: {metrics['global_step']}")
             for key, value in metrics.items():
-                if ("step" in key) and (key is not "global_step"):
+                if ("step" in key) and (key != "global_step"):
                     print(f"  {key}: {value.item():.4f}")
 
 def train_controlnet(in_notebook):
