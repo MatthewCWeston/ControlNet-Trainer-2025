@@ -8,6 +8,7 @@ from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.rank_zero import rank_zero_only
 import wandb
 
+FORMAT_ORDER = ['samples_cfg_scale_9.00', 'reconstruction', 'control'] #, 'conditioning']
 
 class ImageLogger(Callback):
     def __init__(
@@ -39,23 +40,21 @@ class ImageLogger(Callback):
     @rank_zero_only
     def log_local(self, save_dir, split, images, global_step, current_epoch, batch_idx):
         root = os.path.join(save_dir, "image_log", split)
-
+        os.makedirs(root, exist_ok=True) # Make sure logging directory exists
         wandb_images = []
-
-        for k in images:
-            grid = torchvision.utils.make_grid(images[k], nrow=4)
-            if self.rescale:
-                grid = (grid + 1.0) / 2.0  # -1,1 -> 0,1; c,h,w
-            grid = grid.transpose(0, 1).transpose(1, 2).squeeze(-1)
-            grid = grid.numpy()
-            grid = (grid * 255).astype(np.uint8)
-            filename = "{}_gs-{:06}_e-{:06}_b-{:06}.png".format(
-                k, global_step, current_epoch, batch_idx
-            )
-            path = os.path.join(root, filename)
-            os.makedirs(os.path.split(path)[0], exist_ok=True)
-            Image.fromarray(grid).save(path)
-            wandb_images.append(wandb.Image(path, caption=k))
+        grid = torchvision.utils.make_grid(torch.cat([images[k] for k in FORMAT_ORDER], axis=2), nrow=3)
+        if self.rescale:
+            grid = (grid + 1.0) / 2.0  # -1,1 -> 0,1; c,h,w
+        grid = grid.transpose(0, 1).transpose(1, 2).squeeze(-1)
+        grid = grid.numpy()
+        grid = (grid * 255).astype(np.uint8)
+        # 3x3 grid
+        filename = "gs-{:06}_e-{:06}_b-{:06}.png".format(
+            global_step, current_epoch, batch_idx
+        )
+        path = os.path.join(root, filename)
+        Image.fromarray(grid).save(path)
+        wandb_images.append(wandb.Image(path, caption="results"))
 
         if self.wandb_logger:
             wandb.log(
